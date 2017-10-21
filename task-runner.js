@@ -39,7 +39,7 @@ const runTask = (suite) => {
 	 	const parseOutput = output => {
 		 	const regexes = {
 		 		runResult: /Passed:\s+\d+(\sFailed:\s\d+)/i,
-		 		failure: /Test ('.+?') failed with (.+?)\./i
+		 		failure: /Test ('.+?') failed with (.+?)\.(\s*[\r\n]*Reason:*)?/gi
 		 	};
 
 	 		if (output.trim().match(regexes.runResult)) {
@@ -49,9 +49,17 @@ const runTask = (suite) => {
 	 			console.log(`passed: ${passed}; failed: ${failed}`);
 	 		}
 
-	 		// if (output.trim().match(regexes.failure)) {
-	 		// 	output
-	 		// }
+	 		const failureMatches = output.trim().match(regexes.failure);
+	 		if (failureMatches) {
+	 			failureMatches.forEach(match => {
+					const failureMatch = match.match(new RegExp(regexes.failure.source, 'i'));
+		 			// console.log('FAILURE: ' + failureMatch);
+		 			console.log(`failureMatch[0]: ${failureMatch[0]}`);
+		 			console.log(`failureMatch[1]: ${failureMatch[1]}`);
+		 			console.log(`failureMatch[2]: ${failureMatch[2]}`);
+		 			console.log(`failureMatch[3]: ${failureMatch[3] ? failureMatch[3].trim() : undefined }`);		 	
+	 			});		 			
+	 		}
 	 	};
 
 	 	process.stdout.on('data', data => {
