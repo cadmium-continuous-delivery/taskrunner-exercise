@@ -34,36 +34,40 @@ const runTask = (suite) => {
 	 	const process = task.process = Process.spawn('node', ['simpletestrunner', suite]);
 	 	task.status = status.running;
 
+	 	var output = '';
+
 	 	const parseOutput = output => {
 		 	const regexes = {
-		 		runResult: /Passed:\s+\d+(\sFailed:\s\d+)/i
+		 		runResult: /Passed:\s+\d+(\sFailed:\s\d+)/i,
+		 		failure: /Test ('.+?') failed with (.+?)\./i
 		 	};
 
-		 	// console.log(`typeof output: ${typeof output}`);
-		 	// console.log(`output:`); console.log(`${JSON.stringify(output)}`);		 
-		 		
 	 		if (output.trim().match(regexes.runResult)) {
 	 			const runResultMatch = output.trim().match(regexes.runResult);
-
 	 			var passed = runResultMatch[0].trim().match(/Passed:\s+(\d+)/i)[1];
 	 			var failed = runResultMatch[1] ? runResultMatch[1].trim().match(/Failed:\s+(\d+)/i)[1] : 0;
-
 	 			console.log(`passed: ${passed}; failed: ${failed}`);
 	 		}
+
+	 		// if (output.trim().match(regexes.failure)) {
+	 		// 	output
+	 		// }
 	 	};
 
 	 	process.stdout.on('data', data => {
 	 		console.log(`[${taskId}]: ${data}`);
-	 		parseOutput(data.toString());
+	 		output = output.concat(data);
 	 	});
 
 	 	process.stderr.on('data', data => {
 	 		console.error(`[${taskId}-error]: ${data}`);
-	 		parseOutput(data.toString());	 		
+	 		output = output.concat(data);
 	 	});
 
 	 	process.on('close', code => {
 	 		delete task.process;
+
+			parseOutput(output.toString());
 
 	 		task.time.end = Date.now();
 
