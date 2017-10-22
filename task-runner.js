@@ -38,18 +38,20 @@ const runTask = (suite) => {
 
 	 	const parseOutput = output => {
 
+	 		const results = { failures : [] };
+
 		 	const regexes = {
 		 		runResult: /Passed:\s+\d+(\sFailed:\s\d+)/i,
 		 		failure: /Test ('.+?') failed with (.+?)\.(\s*[\r\n]*Reason:.*)?/gi
 		 	};
-
-		 	const failures = [];
 
 	 		if (output.trim().match(regexes.runResult)) {
 	 			const runResultMatch = output.trim().match(regexes.runResult);
 	 			var passed = runResultMatch[0].trim().match(/Passed:\s+(\d+)/i)[1];
 	 			var failed = runResultMatch[1] ? runResultMatch[1].trim().match(/Failed:\s+(\d+)/i)[1] : 0;
 	 			console.log(`passed: ${passed}; failed: ${failed}`);
+	 			results.passed = passed;
+	 			results.failed = failed;
 	 		}
 
 	 		const failureMatches = output.trim().match(regexes.failure);
@@ -57,11 +59,11 @@ const runTask = (suite) => {
 	 			failureMatches.forEach(match => {
 					const failureMatch = match.match(new RegExp(regexes.failure.source, 'i'));
 					const failureReason = failureMatch[3] ? failureMatch[3].match(/Reason:(.*)/)[1].trim() : undefined;
-		 			failures.push({ test: failureMatch[1], exception: failureMatch[2], reason: failureReason });	 	
+		 			results.failures.push({ test: failureMatch[1], exception: failureMatch[2], reason: failureReason });	 	
 	 			});		 			
 	 		}
-
-	 		console.log('failures: ' + JSON.stringify(failures, null, '\t'));
+	 		
+	 		return results;
 	 	};
 
 	 	process.stdout.on('data', data => {
@@ -77,9 +79,9 @@ const runTask = (suite) => {
 	 	process.on('close', code => {
 	 		delete task.process;
 
-			parseOutput(output.toString());
-
 	 		task.time.end = Date.now();
+
+			task.result = parseOutput(output.toString());
 
 	 		if (code == 0) {
 	 			task.status = status.completed;
@@ -101,6 +103,6 @@ let taskHandle = runTask('testSuite2');
 let task = tasks[taskHandle.id];
 console.log('running task ' + taskHandle.id);
 taskHandle.promise.then(result => {
-	console.log('finished task: ' + JSON.stringify(task));
-}).catch(error => console.error('task failed: ' + JSON.stringify(task)))
+	console.log('finished task: ' + JSON.stringify(task, null, '\t'));
+}).catch(error => console.error('task failed: ' + JSON.stringify(task, null, '\t')))
 .then(() => console.log(`runtime: ${task.getRuntime()} ms`));
