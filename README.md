@@ -1,6 +1,6 @@
 For this exercise, you will implement a task dispatcher. The dispatcher will run as a service that allows the scheduling and monitoring of a set of tasks, and retrieval of their results.
 
-The tasks will be “test suites” which will be run from a simple javascript project, `simpletestrunnner.js`, provided in this repository. Your service will be capable of the following:
+The tasks will be “test suites” which will be run from a simple javascript project, `simpletestrunner.js`, provided in this repository. Your service will be capable of the following:
 
 * starting a new run of one of the included test suites on request, provided the test suite name
 * providing the status of a test run on request, including its runtime
